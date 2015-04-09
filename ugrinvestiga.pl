@@ -9,31 +9,37 @@ use lib qw(../lib lib );
 
 use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
+use Data::Dumper;
 
-my $file = shift or die "Uso: $0 NOMBRE.csv -> archivo CSV con los IDs en Google Scholar de los investigadores\n";
-#my $file = "lista_prueba.csv";
-my $line;
+#my $file = "lista_prueba.dat";
+my $file = shift
+  or die "Uso: $0 NOMBRE.dat -> archivo con los IDs en Google Scholar de los investigadores\n";
+open(my $fh, '<:encoding(UTF-8)', $file)
+  or die "No se pudo abrir el archivo '$file' $!";
+
 my @researcher_ids = ();
 
-open INFILE, $file;
-while ($line = <INFILE>){
-  chomp($line);
-  push(@researcher_ids, $line);
+while (my $row = <$fh>){
+  chomp $row;
+  push @researcher_ids, $row;
 }
-close INFILE;
+
+my @dataset = ();
 
 foreach (@researcher_ids){
   my $person = Web::Scraper::Citations->new($_);
 
   my @row = ();
   for my $column ( qw( name affiliation citations citations_last5 h h_last5 i10 i10_last5) ) {
-    push @row, b($person->$column)->encode('UTF-8');
+    push @row, (b($person->$column)->encode('UTF-8'))->to_string;
   }
+  push(@dataset,\@row);
 
-  my $entry = join(", ", @row );
-  print $entry . "\n";
-
-  sleep(30);
+  #sleep(30);
 }
+
+my @sorted = sort {$b->[2] <=> $a->[2]} @dataset;
+
+print Dumper(@sorted);
 
 __END__
