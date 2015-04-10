@@ -9,37 +9,49 @@ use lib qw(../lib lib );
 
 use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
-use Data::Dumper;
+use File::Slurp qw(read_file write_file);
 
-#my $file = "lista_prueba.dat";
-my $file = shift
-  or die "Uso: $0 NOMBRE.dat -> archivo con los IDs en Google Scholar de los investigadores\n";
-open(my $fh, '<:encoding(UTF-8)', $file)
-  or die "No se pudo abrir el archivo '$file' $!";
-
-my @researcher_ids = ();
-
-while (my $row = <$fh>){
-  chomp $row;
-  push @researcher_ids, $row;
+my $num_args = $#ARGV;
+if ($num_args != 1){
+  die "Uso: $0 ENTRADA.dat SALIDA.csv " .
+    "\n ENTRADA.dat -> archivo con los IDs en Google Scholar de los investigadores" .
+    "\n SALIDA.csv -> archivo con el ranking en formato CSV\n";
 }
 
+my ($infile, $outfile) = @ARGV;
+
+# Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
+my @researcher_ids = read_file($infile, chomp => 1);
 my @dataset = ();
 
 foreach (@researcher_ids){
+  # Recuperación de la información de un investigador en función de su ID
   my $person = Web::Scraper::Citations->new($_);
 
   my @row = ();
   for my $column ( qw( name affiliation citations citations_last5 h h_last5 i10 i10_last5) ) {
     push @row, (b($person->$column)->encode('UTF-8'))->to_string;
   }
-  push(@dataset,\@row);
+  # Eliminación de todos los ",", ";" y "." del campo de afiliación
+  $row[1] =~ s/[,;.]/ -/gm;
+  push @dataset, \@row;
 
-  #sleep(30);
+  # Espera de 30 segundos antes de hacer la consulta de los datos de otro investigador
+  sleep(30);
 }
 
+# Ordenación del listado en función del número de citas totales
 my @sorted = sort {$b->[2] <=> $a->[2]} @dataset;
 
-print Dumper(@sorted);
+@dataset = ();
+
+# Formateo de los datos de cada uno de los investigadores como valores separados por comas
+foreach (@sorted){
+  my @person = @{$_};
+  push @dataset, join(", ", @person);
+}
+
+# Escritura del ranking en el archivo de salida
+write_file($outfile, map{"$_\n"} @dataset);
 
 __END__
