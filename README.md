@@ -14,7 +14,7 @@ cpanm --installdeps .
 Para la ejecución correcta del programa es necesario indicar dos archivos como argumentos:
 
 ```
-./ugrinvestiga.pl ENTRADA.dat SALIDA.csv CRITERIO
+./ugrinvestiga.pl ENTRADA.dat SALIDA.csv
 ```
 
 * *ENTRADA.dat*: archivo con los IDs en Google Scholar de los investigadores.
