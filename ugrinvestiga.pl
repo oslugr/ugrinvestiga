@@ -12,28 +12,19 @@ use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
 use File::Slurp qw(read_file write_file);
 
-my $opciones = "\n CRITERIO:\t 1 -> Citas totales" .
-  "\n\t\t 2 -> Citas en los últimos 5 años" .
-  "\n\t\t 3 -> Indice h total" .
-  "\n\t\t 4 -> Indice h de los últimos 5 años" .
-  "\n\t\t 5 -> Indice i10 total" .
-  "\n\t\t 6 -> Indice i10 de los últimos 5 años\n\n";
-
-my $num_args = $#ARGV;
+my $num_args = $#ARGV + 1;
 if ($num_args != 2){
-  die "\nUso: $0 ENTRADA.dat SALIDA.csv CRITERIO" .
+  die "\nUso: $0 ENTRADA.dat SALIDA.csv" .
     "\n ENTRADA.dat -> archivo con los IDs en Google Scholar de los investigadores" .
-    "\n SALIDA.csv -> archivo con el ranking en formato CSV" . $opciones;
+    "\n SALIDA.csv -> archivo con el ranking en formato CSV";
 }
 
-my ($infile, $outfile, $mode) = @ARGV;
-
-if ($mode<1 or $mode>6){
-  die "\nCriterio de ordenación introducido inválido" . $opciones;
-}
+my ($infile, $outfile) = @ARGV;
 
 # Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
 my @researcher_ids = read_file($infile, chomp => 1);
+my $num_inves = $#researcher_ids + 1;
+
 my @dataset = ();
 
 foreach (@researcher_ids){
@@ -53,13 +44,15 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  # Espera de 30 segundos antes de hacer la consulta de los datos de otro investigador
-  sleep(30);
+  if ($num_inves > 1000){
+    sleep(60);
+  } elsif ($num_inves > 500){
+    sleep(30);
+  }
 }
 
 # Ordenación del listado en función del criterio seleccionado
-$mode = $mode + 1;
-my @sorted = sort {$b->[$mode] <=> $a->[$mode]} @dataset;
+my @sorted = sort {$b->[2] <=> $a->[2]} @dataset;
 
 @dataset = ();
 
