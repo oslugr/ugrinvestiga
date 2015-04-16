@@ -44,11 +44,7 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  if ($num_inves > 1000){
-    sleep(60);
-  } elsif ($num_inves > 500){
-    sleep(30);
-  }
+  sleep(30);
 }
 
 # Ordenación del listado en función del criterio seleccionado
