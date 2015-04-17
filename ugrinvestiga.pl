@@ -12,14 +12,9 @@ use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
 use File::Slurp::Tiny qw(read_lines write_file);
 
-my $num_args = $#ARGV + 1;
-if ($num_args != 2){
-  die "\nUso: $0 ENTRADA.dat SALIDA.csv" .
-    "\n ENTRADA.dat -> archivo con los IDs en Google Scholar de los investigadores" .
-    "\n SALIDA.csv -> archivo con el ranking en formato CSV";
-}
+my $infile = shift || "lista_investigadores.dat";
 
-my ($infile, $outfile) = @ARGV;
+my $outfile = shift || "lista_investigadores.csv";
 
 # Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
 
