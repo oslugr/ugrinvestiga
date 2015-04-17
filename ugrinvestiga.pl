@@ -10,7 +10,7 @@ use lib qw(../lib lib );
 
 use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
-use File::Slurp qw(read_file write_file);
+use File::Slurp::Tiny qw(read_lines write_file);
 
 my $num_args = $#ARGV + 1;
 if ($num_args != 2){
@@ -22,13 +22,14 @@ if ($num_args != 2){
 my ($infile, $outfile) = @ARGV;
 
 # Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
-my @researcher_ids = read_file($infile, chomp => 1);
-my $num_inves = $#researcher_ids + 1;
+
+my @researcher_ids = read_lines($infile);
 
 my @dataset = ();
 
 foreach (@researcher_ids){
   # Recuperación de la información de un investigador en función de su ID
+  chomp($_);
   my $person = Web::Scraper::Citations->new($_);
 
   my @row = ();
@@ -44,11 +45,7 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  if ($num_inves > 1000){
-    sleep(60);
-  } elsif ($num_inves > 500){
-    sleep(30);
-  }
+  sleep(30);
 }
 
 # Ordenación del listado en función del criterio seleccionado
@@ -57,12 +54,12 @@ my @sorted = sort {$b->[2] <=> $a->[2]} @dataset;
 @dataset = ();
 
 # Formateo de los datos de cada uno de los investigadores como valores separados por comas
-foreach (@sorted){
-  my @person = @{$_};
+foreach my $p (@sorted){
+  my @person = @{$p};
   push @dataset, join(",", @person);
 }
 
 # Escritura del ranking en el archivo de salida
 write_file($outfile, map{"$_\n"} @dataset);
 
-__END__
+
