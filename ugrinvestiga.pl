@@ -40,7 +40,7 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  sleep(30);
+  sleep(1);
 }
 
 # Ordenación del listado en función del criterio seleccionado
@@ -50,11 +50,10 @@ my @sorted = sort {$b->[2] <=> $a->[2]} @dataset;
 
 # Formateo de los datos de cada uno de los investigadores como valores separados por comas
 foreach my $p (@sorted){
-  my @person = @{$p};
-  push @dataset, join(",", @person);
+  push @dataset, join(",", @{$p});
 }
 
 # Escritura del ranking en el archivo de salida
-write_file($outfile, map{"$_\n"} @dataset);
+write_file($outfile, join("\n",@dataset));
 
 
