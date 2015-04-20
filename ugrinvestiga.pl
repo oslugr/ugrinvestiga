@@ -12,15 +12,22 @@ use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
 use File::Slurp::Tiny qw(read_lines write_file);
 
-my $infile = shift || "lista_investigadores.dat";
+my $num_args = $#ARGV + 1;
+if ($num_args != 2){
+  die "\nUso: $0 ENTRADA.dat SALIDA.csv" .
+    "\n ENTRADA.dat -> archivo con los IDs en Google Scholar de los investigadores" .
+    "\n SALIDA.csv -> archivo con el ranking en formato CSV\n\n";
+}
 
-my $outfile = shift || "lista_investigadores.csv";
+my ($infile, $outfile) = @ARGV;
 
 # Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
-
 my @researcher_ids = read_lines($infile);
 
 my @dataset = ();
+
+my $i = 1;
+my $j = 1;
 
 foreach (@researcher_ids){
   # Recuperación de la información de un investigador en función de su ID
@@ -40,7 +47,17 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  sleep(1);
+  say "Petición " . $j . ": " . $_;
+
+  if ($i == 300){
+    $i = 1;
+    say "Parada";
+    sleep (3600);
+  }
+
+  $i++;
+  $j++;
+  sleep(30);
 }
 
 # Ordenación del listado en función del criterio seleccionado
@@ -55,5 +72,3 @@ foreach my $p (@sorted){
 
 # Escritura del ranking en el archivo de salida
 write_file($outfile, join("\n",@dataset));
-
-
