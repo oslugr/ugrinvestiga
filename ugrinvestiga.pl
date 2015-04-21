@@ -38,14 +38,15 @@ foreach (@researcher_ids){
     die "\n  Se he producido un error en la solicitud con ID \"" . $_ . "\".\n" .
     "  Si el perfil \"https://scholar.google.es/citations?user=" . $_ .
     "\" no existe elimine dicho identificador del archivo de entrada." . 
-    "\n  En caso contrario, pruebe a volver a ejecutar el programa.\n\n";
+    "\n  En caso contrario, pruebe a volver a ejecutar el programa pasado unos minutos.\n\n";
   }
 
   my @row = ();
   for my $column ( qw( name affiliation citations citations_last5 h h_last5 i10 i10_last5) ) {
     push @row, (b($person->$column)->encode('UTF-8'))->to_string;
   }
-  # Eliminación de todos los ",", ";" y "." del campo de afiliación
+  # Eliminación de todos los ",", ";" y "." de los campos con texto
+  $row[0] =~ s/[,;.]/ -/gm;  
   $row[1] =~ s/[,;.]/ -/gm;
 
   if ($row[1] !~ /Granada/){
