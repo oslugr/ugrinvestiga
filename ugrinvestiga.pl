@@ -8,6 +8,7 @@ use open IO => ':locale';
 
 use lib qw(../lib lib );
 
+use Modern::Perl;
 use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
 use File::Slurp::Tiny qw(read_lines write_file);
@@ -23,16 +24,25 @@ my ($infile, $outfile) = @ARGV;
 
 # Lectura del archivo de entrada con los IDs en Google Scholar de los investigadores
 my @researcher_ids = read_lines($infile);
+my $num_res = scalar @researcher_ids;
 
 my @dataset = ();
 
 my $i = 1;
-my $j = 1;
-
 foreach (@researcher_ids){
   # Recuperación de la información de un investigador en función de su ID
   chomp($_);
-  my $person = Web::Scraper::Citations->new($_);
+
+  say "Petición " . $i . " de " . $num_res . ": " . $_;
+
+  my $person = eval { Web::Scraper::Citations->new($_);};
+
+  if ($@) {
+    die "\n  Se he producido un error en la solicitud con ID \"" . $_ . "\".\n" .
+    "  Si el perfil \"https://scholar.google.es/citations?user=" . $_ .
+    "\" no existe elimine dicho identificador del archivo de entrada." . 
+    "\n  En caso contrario, pruebe a volver a ejecutar el programa.\n\n";
+  }
 
   my @row = ();
   for my $column ( qw( name affiliation citations citations_last5 h h_last5 i10 i10_last5) ) {
@@ -47,17 +57,7 @@ foreach (@researcher_ids){
 
   push @dataset, \@row;
 
-  say "Petición " . $j . ": " . $_;
-
-  if ($i == 300){
-    $i = 1;
-    say "Parada";
-    sleep (3600);
-  }
-
   $i++;
-  $j++;
-  sleep(30);
 }
 
 # Ordenación del listado en función del criterio seleccionado
@@ -72,3 +72,5 @@ foreach my $p (@sorted){
 
 # Escritura del ranking en el archivo de salida
 write_file($outfile, join("\n",@dataset));
+
+say "\nRanking generado guardado en el archivo \"" . $outfile . "\".";
