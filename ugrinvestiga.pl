@@ -6,9 +6,6 @@ use v5.14;
 use utf8;
 use open IO => ':locale';
 
-use lib qw(../lib lib );
-
-use Modern::Perl;
 use Web::Scraper::Citations;
 use Mojo::ByteStream 'b';
 use File::Slurp::Tiny qw(read_lines write_file);
